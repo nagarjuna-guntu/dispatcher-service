@@ -18,6 +18,10 @@ spec:
         prometheus.io/path: /actuator/prometheus
         prometheus.io/port: "9003"
     spec:
+      volumes: 
+        - name: dispatcher-config-volume 
+          configMap:
+            name: dispatcher-config 
       containers:
         - name: dispatcher-service
           image: dispatcher-service
@@ -33,6 +37,9 @@ spec:
               value: http://config-service
             - name: SPRING_RABBITMQ_HOST
               value: polar-rabbitmq
+          volumeMounts:
+            - name: dispatcher-config-volume 
+              mountPath: /workspace/config
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
