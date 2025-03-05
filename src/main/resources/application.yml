@@ -4,60 +4,68 @@ server:
 spring:
   application:
     name: dispatcher-service   
-  config:
-    import: "" # "optional:configserver:" 
-  cloud:
-    config:
-      enabled: false
-      uri: http://localhost:8888
-      request-connect-timeout: 5000 # 5s
-      request-read-timeout: 5000 # 5s
-      fail-fast: false # In production, set to true
-      retry:
-        max-attempts: 6
-        initial-interval: 1000 # 1s
-        max-interval: 2000 # 2s
-        multiplier: 1.1
-    function:
-      definition: pack|label
-    stream:
-      bindings:
-        packlabel-in-0:
-          destination: order-accepted
-          group: ${spring.application.name}
-        packlabel-out-0:
-          destination: order-dispached 
- 
-  rabbitmq: 
-    host: localhost 
-    port: 5672 
-    username: user 
-    password: password 
-    connection-timeout: 5s 
+spring.config.import: "" # "optional:configserver:" 
+spring.cloud.config:
+  enabled: false
+  uri: http://localhost:8888
+  request-connect-timeout: 5000 # 5s
+  request-read-timeout: 5000 # 5s
+  fail-fast: false # In production, set to true
+  retry:
+    max-attempts: 6
+    initial-interval: 1000 # 1s
+    max-interval: 2000 # 2s
+    multiplier: 1.1
+spring.cloud.function:
+  definition: pack|label
+spring.cloud.stream:
+  bindings:
+    packlabel-in-0:
+      destination: order-accepted
+      group: ${spring.application.name}
+    packlabel-out-0:
+      destination: order-dispached 
+  rabbit:
+    bindings:
+      packlabel-in-0:
+        consumer:
+          maxAttempts: 2
+          ttl: 2000
+          auto-bind-dlq: true
+          
+spring.rabbitmq: 
+  host: localhost 
+  port: 5672 
+  username: user 
+  password: password 
+  connection-timeout: 5s 
+    
 info: 
   system: Polar Bookshop
       
-management:
-  endpoints:
-    web:
-      exposure:
-        include: refresh, health, flyway, info, heapdump, metrics, env, loggers, mappings, configprops
-  endpoint:
-    health:
-      show-details: always
-      show-components: always
-      probes:
-        enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-  info:
-    env:
+management.endpoints:
+  web:
+    exposure:
+      include: refresh, bindings, health, flyway, info, heapdump, metrics, env, loggers, mappings, configprops
+management.endpoint:
+  health:
+    show-details: always
+    show-components: always
+    probes:
       enabled: true
-    java:
-      enabled: true
-    os:
-      enabled: true 
+management.health:
+  binders:  
+    enabled: true # if not enabled, management.health.defaults.enabled is set to true by default and add binder health indicators.
+management.metrics:
+  tags:
+    application: ${spring.application.name}
+management.info:
+  env:
+    enabled: true
+  java:
+    enabled: true
+  os:
+    enabled: true 
        
 logging:
   pattern:

@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.cloud.function.context.test.FunctionalSpringBootTest;
 
+import com.polarbookshop.dispatcher_service.domain.OrderAcceptedMessage;
+import com.polarbookshop.dispatcher_service.domain.OrderDispatchedMessage;
+
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -18,12 +21,11 @@ import reactor.test.StepVerifier;
 public class DispatchingFunctionsIntegrationTests {
 	
 	@Autowired
-	private FunctionCatalog catalog;
+	private FunctionCatalog functionCatalog;
 
 	@Test
 	void packOrder() {
-		Function<OrderAcceptedMessage, Long> pack = 
-				catalog.lookup(Function.class, "pack");
+		Function<OrderAcceptedMessage, Long> pack = functionCatalog.lookup(Function.class, "pack");
 		long orderId = 121;
 		var input = new OrderAcceptedMessage(orderId);
 		assertThat(pack.apply(input)).isEqualTo(orderId);
@@ -31,8 +33,7 @@ public class DispatchingFunctionsIntegrationTests {
 
 	@Test
 	void labelOrder() {
-		Function<Flux<Long>, Flux<OrderDispatchedMessage>> label = 
-				catalog.lookup(Function.class, "label");
+		Function<Flux<Long>, Flux<OrderDispatchedMessage>> label = functionCatalog.lookup(Function.class, "label");
 		Flux<Long> orderId = Flux.just(121L);
 		var output = new OrderDispatchedMessage(121L);
 
@@ -45,7 +46,7 @@ public class DispatchingFunctionsIntegrationTests {
 	@Test
 	void packAndLabelOrder() {
 		Function<OrderAcceptedMessage, Flux<OrderDispatchedMessage>> packAndLabel =
-				catalog.lookup(Function.class, "pack|label");
+				functionCatalog.lookup(Function.class, "pack|label");
 		long orderId = 121;
 		var input = new OrderAcceptedMessage(orderId);
 		var output = new OrderDispatchedMessage(orderId);
